@@ -63,7 +63,7 @@ def update_contact(id):
 def delete_contact(id):
     contact = Contact.query.get(id)
     # Bug: Not actually deleting the contact but returning success
-    # db.session.delete(contact)
+    db.session.delete(contact)
     db.session.commit()
     return redirect(url_for('list_contacts'))
 
