@@ -43,7 +43,12 @@
             {% endfor %}
         {% endif %}
     </div>
+
+    <div class="form-check mb-3">
+        {{ form.is_favourite(class="form-check-input") }}
+        {{ form.is_favourite.label(class="form-check-label") }}
+    </div>
     
     {{ form.submit(class="btn btn-primary") }}
 </form>
-{% endblock %} 
+{% endblock %}

@@ -33,7 +33,8 @@ def add_contact():
             name=form.name.data,
             phone=form.phone.data,
             email=form.email.data,
-            type=form.type.data
+            type=form.type.data,
+            is_favourite=form.is_favourite.data  # Include favourite field
         )
         try:
             db.session.add(contact)
@@ -47,24 +48,36 @@ def add_contact():
 
 @app.route('/update/<int:id>', methods=['GET', 'POST'])
 def update_contact(id):
-    contact = Contact.query.get(id)
+    contact = Contact.query.get_or_404(id)
     form = ContactForm(obj=contact)
     
     if form.validate_on_submit():
         contact.name = form.name.data
         contact.phone = form.phone.data
         contact.email = form.email.data
+        contact.type = form.type.data
+        contact.is_favourite = form.is_favourite.data  # Now updates favourite field
         db.session.commit()
+        flash('Contact updated successfully!', 'success')
         return redirect(url_for('list_contacts'))
     
     return render_template('update_contact.html', form=form, contact=contact)
 
 @app.route('/delete/<int:id>')
 def delete_contact(id):
-    contact = Contact.query.get(id)
-    # Bug: Not actually deleting the contact but returning success
-    # db.session.delete(contact)
+    contact = Contact.query.get_or_404(id)
+    db.session.delete(contact)  # Now actually deletes
     db.session.commit()
+    flash('Contact deleted successfully!', 'success')
+    return redirect(url_for('list_contacts'))
+
+# FAVOURITE FEATURE
+@app.route('/toggle_favourite/<int:id>', methods=['POST'])
+def toggle_favourite(id):
+    contact = Contact.query.get_or_404(id)
+    contact.is_favourite = not contact.is_favourite  # Toggle favourite status
+    db.session.commit()
+    flash('Contact favourite status updated!', 'success')
     return redirect(url_for('list_contacts'))
 
 # API Routes
@@ -81,10 +94,9 @@ def get_contact(id):
 @app.route('/api/contacts', methods=['POST'])
 def create_contact():
     data = request.get_json()
-    
     if not all(k in data for k in ('name', 'phone', 'type')):
         return jsonify({'error': 'Missing required fields'}), 400
-        
+    
     contact = Contact(**data)
     try:
         db.session.add(contact)
@@ -112,12 +124,25 @@ def update_contact_api(id):
 
 @app.route('/api/contacts/<int:id>', methods=['DELETE'])
 def delete_contact_api(id):
-    contact = Contact.query.get(id)
-    if contact:
-        # Bug: Same issue in API - not actually deleting
-        # db.session.delete(contact)
+    contact = Contact.query.get_or_404(id)
+    db.session.delete(contact)  # Now actually deletes
+    db.session.commit()
+    return '', 204
+
+@app.route('/api/contacts/<int:id>/favourite', methods=['PUT'])
+def toggle_favourite_api(id):
+    contact = Contact.query.get_or_404(id)
+    data = request.get_json()
+
+    if 'is_favourite' in data:
+        contact.is_favourite = data['is_favourite']
+
+    try:
         db.session.commit()
-    return '', 204  # Returns success even though nothing was deleted
+        return jsonify(contact.to_dict())
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001) 
+    app.run(debug=True, port=5001)

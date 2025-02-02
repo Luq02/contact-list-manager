@@ -12,6 +12,7 @@
             <th>Phone</th>
             <th>Email</th>
             <th>Type</th>
+            <th>Favourite</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -23,6 +24,15 @@
             <td>{{ contact.email }}</td>
             <td>{{ contact.type }}</td>
             <td>
+                <a href="{{ url_for('toggle_favourite', id=contact.id) }}" class="btn btn-sm">
+                    {% if contact.is_favourite %}
+                        ⭐
+                    {% else %}
+                        ☆
+                    {% endif %}
+                </a>
+            </td>
+            <td>
                 <a href="{{ url_for('update_contact', id=contact.id) }}" class="btn btn-sm btn-primary">Edit</a>
                 <a href="{{ url_for('delete_contact', id=contact.id) }}" class="btn btn-sm btn-danger" 
                    onclick="return confirm('Are you sure you want to delete this contact?')">Delete</a>
@@ -31,4 +41,4 @@
         {% endfor %}
     </tbody>
 </table>
-{% endblock %} 
+{% endblock %}
