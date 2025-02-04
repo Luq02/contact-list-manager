@@ -3,7 +3,7 @@ from wtforms import StringField, SelectField, SubmitField, BooleanField
 from wtforms.validators import DataRequired, Email, Regexp, Optional
 
 class ContactForm(FlaskForm):
-    name = StringField('Name')
+    name = StringField('Name', validators=[DataRequired()])
     
     phone = StringField(
         'Phone', 
@@ -13,7 +13,13 @@ class ContactForm(FlaskForm):
         ]
     )
     
-    email = StringField('Email')
+    email = StringField(
+        'Email', 
+        validators=[
+            Optional(),  # Email is optional but must be valid if entered
+            Email(message="Invalid email format. Please enter a valid email address.")
+        ]
+    )
     
     type = SelectField(
         'Type', 
