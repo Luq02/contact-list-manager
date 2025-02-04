@@ -22,8 +22,13 @@ def index():
 
 @app.route('/contacts')
 def list_contacts():
-    contacts = Contact.query.all()
-    return render_template('contacts.html', contacts=contacts)
+    # Fetch all contacts, sorted alphabetically by name (case-insensitive)
+    contacts = Contact.query.order_by(db.func.lower(Contact.name).asc()).all()
+
+    # Fetch recent contacts (last 5 added)
+    recent_contacts = Contact.query.order_by(Contact.id.desc()).limit(5).all()
+
+    return render_template('contacts.html', contacts=contacts, recent_contacts=recent_contacts)
 
 @app.route('/add', methods=['GET', 'POST'])
 def add_contact():
